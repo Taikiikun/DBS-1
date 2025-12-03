@@ -1,0 +1,49 @@
+DROP TABLE Adoptiert;
+DROP TABLE Mitarbeiter;
+DROP TABLE Adoptant;
+DROP TABLE Haustier;
+
+CREATE TABLE Haustier(
+  TierID       NUMBER,
+  Tiername     VARCHAR2(50) NOT NULL,
+  Geburtsdatum DATE,
+  CONSTRAINT pk_TierID PRIMARY KEY (TierID)
+);
+
+CREATE TABLE Adoptant(
+  AdoptantID       NUMBER,
+  Vorname          VARCHAR2(50) NOT NULL,
+  Nachname         VARCHAR2(50) NOT NULL,
+  Lieblingstierart VARCHAR2(50),
+  Age              NUMBER NOT NULL,
+  CONSTRAINT pk_Adoptant PRIMARY KEY (AdoptantID)
+);
+
+CREATE TABLE Mitarbeiter(
+  MitarbeiterID   NUMBER,
+  Vorname         VARCHAR2(50) NOT NULL,
+  Nachname        VARCHAR2(50) NOT NULL,
+  Email           VARCHAR2(50) NOT NULL,
+  Gehalt          NUMBER NOT NULL,
+  Geschlecht      CHAR(1) NOT NULL,
+  Aufgabenbereich VARCHAR2(50),
+  CONSTRAINT pk_Mitarbeiter PRIMARY KEY (MitarbeiterID)
+);
+
+CREATE TABLE Adoptiert(
+  AdoptantID    NUMBER,
+  TierID        NUMBER,
+  MitarbeiterID NUMBER,
+  Datum         DATE NOT NULL,
+  CONSTRAINT pk_Adoptiert PRIMARY KEY (AdoptantID, TierID)
+);
+
+ALTER TABLE Adoptiert ADD CONSTRAINT fk_adoptiert_adoptant FOREIGN KEY (AdoptantID) REFERENCES Adoptant(AdoptantID);
+ALTER TABLE Adoptiert ADD CONSTRAINT fk_adoptiert_TierID FOREIGN KEY(TierID) REFERENCES Haustier(TierID);
+ALTER TABLE Adoptiert ADD CONSTRAINT fk_adoptiert_MitarbeiterID FOREIGN KEY(MitarbeiterID) REFERENCES Mitarbeiter(MitarbeiterID);
+
+ALTER TABLE Adoptant ADD CONSTRAINT chk_age CHECK (Age >= 18);
+ALTER TABLE Mitarbeiter ADD CONSTRAINT chk_Aufgabenbereich CHECK (Aufgabenbereich IN ('Tiervermittlung', 'Pflege'));
+ALTER TABLE Mitarbeiter ADD CONSTRAINT chk_Gehalt CHECK ((Aufgabenbereich = 'Tiervermittlung' AND Gehalt >= 30000) OR (Aufgabenbereich = 'Pflege' AND Gehalt >= 35000) OR (Aufgabenbereich IS NULL));
+ALTER TABLE Mitarbeiter ADD CONSTRAINT chk_email CHECK ((SUBSTR(Email, 3, 1) = '.') AND (INSTR(Email, '@') > 0) AND (SUBSTR(Email, INSTR(Email, '@')) = '@Tierheim.de'));
+ALTER TABLE Adoptant ADD CONSTRAINT chk_Lieblingstierart CHECK ((Lieblingstierart IS NULL) OR (Lieblingstierart <> 'Krokodil' AND Lieblingstierart <> 'Zebra'));
