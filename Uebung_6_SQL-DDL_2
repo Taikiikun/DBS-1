@@ -1,0 +1,108 @@
+DROP TABLE besteht_aus;
+DROP TABLE Komponente;
+DROP TABLE kaufen;
+DROP TABLE Artikel;
+DROP TABLE Hersteller;
+DROP TABLE Kunde;
+DROP TABLE NutzerIn;
+
+CREATE TABLE NutzerIn(
+    N_ID    NUMBER,
+    Namen   VARCHAR2(30)    NULL,
+    email   VARCHAR2(30),
+    
+    CONSTRAINT pk_n_id PRIMARY KEY(N_ID),
+    CONSTRAINT u_email UNIQUE(email)
+);
+
+CREATE TABLE Kunde(
+    K_ID    NUMBER,
+    Lieferadresse   VARCHAR2(50)    NULL,
+    
+    CONSTRAINT pk_Kunde PRIMARY KEY(K_ID)
+);
+
+CREATE TABLE Hersteller(
+    H_ID    NUMBER,
+    iban    CHAR(22)    NULL,
+    anzahl_verk_artikel NUMBER  NULL,
+    
+    CONSTRAINT pk_h_id PRIMARY KEY(H_ID)
+);
+
+CREATE TABLE Artikel(
+    Artikel_ID  NUMBER,
+    title   VARCHAR2(20)    NULL,
+    categorie   VARCHAR2(30)    NULL,
+    Hersteller  NUMBER,
+    
+    CONSTRAINT pk_Artikel   PRIMARY KEY(Artikel_ID)
+);
+
+CREATE TABLE kaufen(
+    Artikel NUMBER,
+    Kunde   NUMBER,
+    Preis   NUMBER  NOT NULL,
+    
+    CONSTRAINT pk_kaufen PRIMARY KEY(Artikel,Kunde)
+);
+
+CREATE TABLE Komponente(
+    Komp_ID NUMBER,
+    Bezeichnung VARCHAR2(50)    NULL,
+    Stueckkosten    NUMBER  NULL,
+    
+    CONSTRAINT pk_komp PRIMARY KEY(Komp_ID)
+);
+
+CREATE TABLE besteht_aus(
+    Komp_ID NUMBER,
+    Artikel_ID  NUMBER,
+    
+    CONSTRAINT pk_besteht_aus   PRIMARY KEY(Komp_ID, Artikel_ID)
+);
+
+ALTER TABLE Kunde ADD CONSTRAINT fk_Kunde_NutzerIn   FOREIGN KEY(K_ID) REFERENCES NutzerIn(N_ID);
+ALTER TABLE Hersteller ADD CONSTRAINT fk_Hersteller_NutzerIn   FOREIGN KEY(H_ID) REFERENCES NutzerIn(N_ID);
+ALTER TABLE Artikel ADD CONSTRAINT fk_Artikel_Hersteller    FOREIGN KEY(Hersteller) REFERENCES Hersteller(H_ID);
+ALTER TABLE kaufen ADD CONSTRAINT fk_kaufen_Artikel FOREIGN KEY(Artikel) REFERENCES Artikel(Artikel_ID);
+ALTER TABLE kaufen ADD CONSTRAINT fk_kaufen_Kunde FOREIGN KEY(Kunde) REFERENCES Kunde(K_ID);
+ALTER TABLE besteht_aus ADD CONSTRAINT fk_besteht_aus_Komp  FOREIGN KEY(Komp_ID) REFERENCES Komponente(Komp_ID);
+ALTER TABLE besteht_aus ADD CONSTRAINT fk_besteht_aus_Artikel   FOREIGN KEY(Artikel_ID) REFERENCES Artikel(Artikel_ID);
+
+ALTER TABLE kaufen ADD CONSTRAINT chk_kaufen_preis CHECK (preis >= 0);
+ALTER TABLE Komponente ADD CONSTRAINT chk_komp_stkkosten CHECK (Stueckkosten >=0 AND Stueckkosten <= 100);
+ALTER TABLE Artikel ADD CONSTRAINT chk_art_katego CHECK (categorie IN ('Elektronik', 'Haushalt', 'Spielzeug'));
+ALTER TABLE Hersteller ADD CONSTRAINT chk_iban_978 CHECK (SUBSTR(iban, 1, 3) = '978');
+ALTER TABLE NutzerIn ADD CONSTRAINT chk_mail_punkt CHECK (INSTR(email, '@') > 0 AND INSTR(email, '.', INSTR(email, '@') +1) > 0);
+
+INSERT INTO NutzerIn VALUES (1, 'Lara Jung', 'ljung@web.de');
+INSERT INTO NutzerIn VALUES (2, 'Carolin Franke', 'cfranke@ulrich.de');
+INSERT INTO NutzerIn VALUES (3, 'Johannes Graf', 'johgraf@becker.de');
+
+INSERT INTO Kunde VALUES (1, 'Aletshausen, Paderborner Str. 6');
+INSERT INTO Kunde VALUES (3, 'Beckingen, Stresemannstr. 72');
+
+INSERT INTO Hersteller VALUES (2, '97800105173937771787', NULL);
+
+INSERT INTO Artikel VALUES (1, 'Kleiner Schrank', 'Haushalt', 2);
+INSERT INTO Artikel VALUES (2, 'Schrauben 50er Pack', 'Haushalt', 2);
+
+INSERT INTO kaufen VALUES (1, 1, 57.99);
+INSERT INTO kaufen VALUES (1, 3, 57.99);
+INSERT INTO kaufen VALUES (2, 1, 10.50);
+
+INSERT INTO Komponente VALUES (1,'Schraube', 0.21);
+INSERT INTO Komponente VALUES (2, 'Holzplatter 800x200x18', 10.80); 
+INSERT INTO Komponente VALUES (3, 'Winkelverbinder', 0.75);
+
+INSERT INTO besteht_aus VALUES (2, 1);
+INSERT INTO besteht_aus VALUES (3, 1);
+INSERT INTO besteht_aus VALUES (1, 2);
+
+UPDATE Artikel SET Title = 'Schraube 45er Pack' WHERE Artikel_ID = 2;
+UPDATE Komponente SET stueckkosten = stueckkosten * 1.10;
+UPDATE Komponente SET stueckkosten = stueckkosten * 1.05 WHERE Komp_ID = 3;
+
+DELETE FROM besteht_aus WHERE Komp_ID = 3;
+DELETE FROM kaufen;
